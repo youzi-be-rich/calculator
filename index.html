@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>除權息試算工具 | @youzi_be_rich</title>
+  
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 引入 Feather Icons -->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            oatmeal: '#F9F8F4',
+            morandi: '#7E8D7A',
+            morandiDark: '#687664',
+            olive: '#3D4035',
+            oliveLight: '#464A3D',
+            oliveBorder: '#525648',
+            sage: '#A4B0A0',
+            sageLight: '#D5DCCC',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* 優化手機端輸入體驗 */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  </style>
+</head>
+<body class="bg-oatmeal text-gray-700 font-sans min-h-screen p-4 md:p-8 flex flex-col items-center justify-center">
+
+  <div class="max-w-xl w-full">
+    <!-- 標題區塊 -->
+    <div class="text-center mb-8 md:mb-10">
+      <h1 class="text-2xl md:text-3xl tracking-wider font-semibold text-olive mb-2 flex items-center justify-center gap-2">
+        <i data-feather="calculator" class="text-morandi"></i>
+        除權息試算工具
+      </h1>
+      <p class="text-gray-400 text-xs md:text-sm tracking-widest">
+        精準掌握資產變化，讓財富自由生長。
+      </p>
+    </div>
+
+    <!-- 輸入區塊 -->
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-8 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 mb-6">
+        <div>
+          <label class="block text-sm font-medium text-morandi mb-2">除權息前股價 (元)</label>
+          <input type="number" id="price" inputmode="decimal" placeholder="例如: 100" class="w-full px-4 py-3 bg-oatmeal border border-transparent focus:border-morandi focus:bg-white rounded-xl transition-all outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-morandi mb-2">持有股數 (股)</label>
+          <input type="number" id="shares" value="1000" inputmode="numeric" placeholder="1張 = 1000股" class="w-full px-4 py-3 bg-oatmeal border border-transparent focus:border-morandi focus:bg-white rounded-xl transition-all outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-morandi mb-2">現金股利 (元/股)</label>
+          <input type="number" id="cashDiv" inputmode="decimal" placeholder="例如: 2.5" class="w-full px-4 py-3 bg-oatmeal border border-transparent focus:border-morandi focus:bg-white rounded-xl transition-all outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-morandi mb-2">股票股利 (元/股)</label>
+          <input type="number" id="stockDiv" inputmode="decimal" placeholder="例如: 1.0" class="w-full px-4 py-3 bg-oatmeal border border-transparent focus:border-morandi focus:bg-white rounded-xl transition-all outline-none">
+        </div>
+      </div>
+
+      <div class="flex gap-4">
+        <button onclick="calculate()" class="flex-1 bg-morandi hover:bg-morandiDark text-white py-3 md:py-4 rounded-xl font-medium tracking-wide transition-all shadow-sm active:scale-95">
+          開始試算
+        </button>
+        <button onclick="clearInputs()" class="px-6 py-3 md:py-4 rounded-xl font-medium tracking-wide text-gray-400 hover:bg-gray-100 transition-all">
+          清除
+        </button>
+      </div>
+    </div>
+
+    <!-- 結果區塊 -->
+    <div id="result-section" class="hidden bg-olive text-white rounded-3xl p-6 md:p-8 shadow-lg fade-in">
+      <div class="flex items-center justify-between mb-8 border-b border-oliveBorder pb-6">
+        <div>
+          <p class="text-sage text-sm mb-1 tracking-wider">除權息參考價</p>
+          <div class="text-4xl md:text-5xl font-light tracking-tight">
+            <span class="text-xl md:text-2xl mr-1 text-sage">$</span>
+            <span id="res-refPrice">0.00</span>
+          </div>
+        </div>
+        <div class="w-12 h-12 bg-oliveBorder rounded-full flex items-center justify-center">
+          <i data-feather="trending-up" class="text-sageLight"></i>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 md:gap-6">
+        <div class="bg-oliveLight p-4 rounded-2xl">
+          <div class="flex items-center gap-2 text-sage mb-2">
+            <i data-feather="dollar-sign" class="w-4 h-4"></i>
+            <span class="text-xs md:text-sm">獲得總現金</span>
+          </div>
+          <div class="text-xl md:text-2xl font-medium">
+            <span id="res-totalCash">0</span> <span class="text-sm font-normal text-sage">元</span>
+          </div>
+        </div>
+        <div class="bg-oliveLight p-4 rounded-2xl">
+          <div class="flex items-center gap-2 text-sage mb-2">
+            <i data-feather="pie-chart" class="w-4 h-4"></i>
+            <span class="text-xs md:text-sm">獲得新股數</span>
+          </div>
+          <div class="text-xl md:text-2xl font-medium">
+            <span id="res-newShares">0</span> <span class="text-sm font-normal text-sage">股</span>
+          </div>
+        </div>
+        <div class="col-span-2 bg-morandi p-5 rounded-2xl flex justify-between items-center">
+          <div>
+            <p class="text-sageLight text-xs md:text-sm mb-1">除權息後總股數</p>
+            <div class="text-2xl md:text-3xl font-semibold">
+              <span id="res-totalShares">0</span> <span class="text-lg font-normal text-sageLight">股</span>
+            </div>
+          </div>
+          <i data-feather="arrow-right" class="w-8 h-8 text-sageLight opacity-50"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 text-center flex flex-col items-center justify-center opacity-70 hover:opacity-100 transition-opacity">
+      <a href="https://www.instagram.com/youzi_be_rich/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-morandi hover:text-olive">
+        <i data-feather="instagram" class="w-4 h-4"></i>
+        <span class="text-sm font-medium tracking-widest">@youzi_be_rich</span>
+      </a>
+      <p class="text-xs text-gray-400 mt-2">設計給追求財富自由的你</p>
+    </div>
+  </div>
+
+  <script>
+    feather.replace();
+
+    function calculate() {
+      const price = parseFloat(document.getElementById('price').value) || 0;
+      const shares = parseFloat(document.getElementById('shares').value) || 0;
+      const cashDiv = parseFloat(document.getElementById('cashDiv').value) || 0;
+      const stockDiv = parseFloat(document.getElementById('stockDiv').value) || 0;
+
+      if (price === 0 || shares === 0) {
+        // 使用內建的 alert，如果在 iFrame 中可能需要自定義 modal，但這裡先維持你的原設計
+        alert("請輸入除權息前股價與持有股數喔！");
+        return;
+      }
+
+      // 台灣除權息計算公式
+      const totalCashPayout = shares * cashDiv;
+      const newSharesFromStock = shares * (stockDiv / 10);
+      const integerNewShares = Math.floor(newSharesFromStock); 
+      const fractionalCash = (newSharesFromStock - integerNewShares) * price; 
+      
+      const totalSharesAfter = shares + integerNewShares;
+      const referencePrice = (price - cashDiv) / (1 + (stockDiv / 10));
+
+      const finalCashReceived = Math.floor(totalCashPayout + fractionalCash);
+
+      document.getElementById('res-refPrice').innerText = referencePrice.toFixed(2);
+      document.getElementById('res-totalCash').innerText = finalCashReceived.toLocaleString();
+      document.getElementById('res-newShares').innerText = integerNewShares.toLocaleString();
+      document.getElementById('res-totalShares').innerText = totalSharesAfter.toLocaleString();
+
+      document.getElementById('result-section').classList.remove('hidden');
+      
+      // 自動捲動到結果
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    function clearInputs() {
+      document.getElementById('price').value = '';
+      document.getElementById('shares').value = '1000';
+      document.getElementById('cashDiv').value = '';
+      document.getElementById('stockDiv').value = '';
+      document.getElementById('result-section').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
